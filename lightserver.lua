@@ -34,7 +34,17 @@ local function connect (conn, data)
          colour = get_colour_from_url(query_data["REQUEST"])
          cn:send("HTTP/1.1 200 OK\n")
          cn:send("Content-Type:text/html\n\n")
-         cn:send ("Hello World from ESP8266 and NodeMCU!!<a href=\"/led/1/colour/red\">Red<a/>")
+         cn:send("<h2>Control the lights</h2><p><table>")
+         for led = 1, 2, 1 do
+           cn:send(" <tr><td>Led " .. led .. "</td>")
+           local colours = {"red", "green", "blue"}
+           for colournum = 1 , #colours do
+               col=colours[colournum]
+             cn:send("<td><a href=\"/led/".. led .. "/colour/" .. col .. "\" style=\"color:".. col .. ";\">" .. col .. "<a/><td>")
+           end
+           cn:send("</tr>")
+         end
+         cn:send("</table>")
          -- Close the connection for the request
          cn:close ( )
       end)
