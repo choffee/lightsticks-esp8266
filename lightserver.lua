@@ -10,17 +10,55 @@
 
 config = require("config")
 local LED_PIN = config.LED_PIN
+local LED_COUNT = 2
+
+local LEDS = {}
+
+for count = 1, LED_COUNT, 1 do
+    LEDS[count] = {}
+    LEDS[count]["r"] = 0
+    LEDS[count]["g"] = 0
+    LEDS[count]["b"] = 0
+end
 
 
 local function get_colour_from_url(request)
+    local led, colour
+    local red, green, blue
     led, colour = string.match(request, "/led/(%d)/colour/(%w+)")
+
     if colour == "red" then
-        ws2812.writergb(LED_PIN,string.char(100, 0, 0))
+        red = 255
+        green = 0
+        blue = 0
     elseif colour == "blue" then
-        ws2812.writergb(LED_PIN,string.char(0, 0, 100))
+        red = 0
+        green = 0
+        blue = 255
     elseif colour == "green" then
-        ws2812.writergb(LED_PIN,string.char(0, 100, 0))
+        red = 0
+        green = 255
+        blue = 0
+    else
+        red = 100
+        green = 100
+        blue = 100
     end
+    if led < LED_COUNT then
+        LEDS[led]["r"] = red
+        LEDS[led]["g"] = green
+        LEDS[led]["b"] = blue
+
+    end
+end
+
+local function show_leds()
+    local light = ""
+    for count = 1, LED_COUNT, 1 do
+        led = LEDS[count]
+        light = light + string.char(led["r"], led["g"], led["b"])
+    end
+    ws2812.writergb(LED_PIN, light)
 end
 
 local function connect (conn, data)
