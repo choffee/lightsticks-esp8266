@@ -1,0 +1,4 @@
+#!/bin/sh
+./luatool.py -f lightserver.lua -c -r
+sleep 10
+./luatool.py -f lightserver.lua -d
