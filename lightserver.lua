@@ -32,6 +32,8 @@ local function connect (conn, data)
          print (query_data["METHOD"] .. " " .. " " .. query_data["User-Agent"])
          print (query_data["REQUEST"])
          colour = get_colour_from_url(query_data["REQUEST"])
+         cn:send("HTTP/1.1 200 OK\n")
+         cn:send("Content-Type:text/html\n\n")
          cn:send ("Hello World from ESP8266 and NodeMCU!!<a href=\"/led/1/colour/red\">Red<a/>")
          -- Close the connection for the request
          cn:close ( )
@@ -84,6 +86,7 @@ function trim (s)
   return (s:gsub ("^%s*(.-)%s*$", "%1"))
 end
 
+-- XXX This wants to be in a loop.
 -- Configure the ESP as a station (client)
 wifi.setmode (wifi.STATION)
 wifi.sta.config (config.SSID, config.SSID_PASSWORD)
