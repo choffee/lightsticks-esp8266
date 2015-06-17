@@ -1,26 +1,21 @@
-
-
--- Simple NodeMCU web server (done is a not so nodeie fashion :-)
+-- A server for a pair of lights
 --
--- Written by Scott Beasley 2015
--- Open and free to change and use. Enjoy.
+-- Evolved from some code by
+-- Scott Beasley 2015
 --
-
--- Your Wifi connection data
+-- Copyright John Cooper 2015
+-- See the Licence file.
 
 config = require("config")
 local LED_PIN = config.LED_PIN
-local LED_COUNT = 2
 
-local LEDS = {}
+local LED1 = string.char(0,0,0)
+local LED2 = string.char(0,0,0)
 
-for count = 1, LED_COUNT, 1 do
-    LEDS[count] = {}
-    LEDS[count]["r"] = 0
-    LEDS[count]["g"] = 0
-    LEDS[count]["b"] = 0
+
+local function show_leds()
+    ws2812.writergb(LED_PIN, LED1 .. LED2 )
 end
-
 
 local function get_colour_from_url(request)
     local led, colour
@@ -44,22 +39,19 @@ local function get_colour_from_url(request)
         green = 100
         blue = 100
     end
-    if led < LED_COUNT then
-        LEDS[led]["r"] = red
-        LEDS[led]["g"] = green
-        LEDS[led]["b"] = blue
-
+    local refresh = false
+    if ( led == "1" ) then
+        LED1 = string.char(red, green, blue)
+        refresh = true
+    elseif ( led == "2" ) then
+        LED2 = string.char(red, green, blue)
+        refresh = true
+    end
+    if refresh then
+        show_leds()
     end
 end
 
-local function show_leds()
-    local light = ""
-    for count = 1, LED_COUNT, 1 do
-        led = LEDS[count]
-        light = light + string.char(led["r"], led["g"], led["b"])
-    end
-    ws2812.writergb(LED_PIN, light)
-end
 
 local function connect (conn, data)
    local query_data, colour
@@ -88,18 +80,6 @@ local function connect (conn, data)
       end)
 end
 
-function wait_for_wifi_conn ( )
-   tmr.alarm (1, 1000, 1, function ( )
-      if wifi.sta.getip ( ) == nil then
-         print ("Waiting for Wifi connection")
-      else
-         tmr.stop (1)
-         print ("ESP8266 mode is: " .. wifi.getmode ( ))
-         print ("The module MAC address is: " .. wifi.ap.getmac ( ))
-         print ("Config done, IP is " .. wifi.sta.getip ( ))
-      end
-   end)
-end
 
 -- Build and return a table of the http request data
 function get_http_req (instr)
@@ -134,14 +114,7 @@ function trim (s)
   return (s:gsub ("^%s*(.-)%s*$", "%1"))
 end
 
--- XXX This wants to be in a loop.
--- Configure the ESP as a station (client)
-wifi.setmode (wifi.STATION)
-wifi.sta.config (config.SSID, config.SSID_PASSWORD)
-wifi.sta.autoconnect (1)
-
--- Hang out until we get a wifi connection before the httpd server is started.
-wait_for_wifi_conn ( )
+require 'mywifi'
 
 -- Create the httpd server
 svr = net.createServer (net.TCP, 30)
