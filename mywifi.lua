@@ -2,15 +2,25 @@
 
 local config = require("config")
 
+local ledon = true
+
 function wait_for_wifi_conn ( )
-   tmr.alarm (1, 1000, 1, function ( )
+   tmr.alarm (1, 500, 1, function ( )
       if wifi.sta.getip ( ) == nil then
          print ("Waiting for Wifi connection")
+         if ledon then
+             ws2812.writergb(config.LED_PIN, string.char(100,0,0))
+             ledon = false
+         else
+             ws2812.writergb(config.LED_PIN, string.char(0,0,0))
+             ledon = true
+         end
       else
          tmr.stop (1)
          print ("ESP8266 mode is: " .. wifi.getmode ( ))
          print ("The module MAC address is: " .. wifi.ap.getmac ( ))
          print ("Config done, IP is " .. wifi.sta.getip ( ))
+         ws2812.writergb(config.LED_PIN, string.char(0,100,0))
       end
    end)
 end
